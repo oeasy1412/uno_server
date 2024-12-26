@@ -15,9 +15,7 @@ UNO_ImGui的服务端
 
 #### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1.  请把 max_player.cfg 改为你需要的玩家数量，并将其放到.exe同目录下
 
 #### 参与贡献
 
