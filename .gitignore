@@ -1,3 +1,7 @@
+# In vscode
+.vscode
+build
+
 # Prerequisites
 *.d
 
