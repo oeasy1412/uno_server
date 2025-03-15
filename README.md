@@ -9,7 +9,7 @@ UNO_ImGui的服务端
 
 #### 安装教程
 
-1.  在根目录执行 `make` 命令，生成 server.exe
+1.  在根目录执行 `cmake build` 命令，生成 `server.exe` 
 2.  （若要将 app.exe 移动到其他文件夹）需要将max_player.cfg 同 server.exe 放在同一个文件夹内。
 
 #### 使用说明

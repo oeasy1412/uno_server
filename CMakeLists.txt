@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(uno_server)
+project(uno_server
+    VERSION 2.0.0
+    DESCRIPTION "UNO_server"
+    HOMEPAGE_URL "https://github.com/oeasy1412/uno_server"
+    LANGUAGES CXX
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +21,7 @@ target_link_libraries(server PRIVATE
     d3dcompiler
     ws2_32
     winmm
+    pthread
 )
 target_compile_options(server PRIVATE
     -static-libgcc

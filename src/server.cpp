@@ -92,9 +92,7 @@ void generateCard(vector<string>& warehouse) {
 }
 
 // 随机座位（未上线）
-void toRandom(map<int, string>& ToPlayer,
-              map<string, bool>& IsPlayer,
-              const int max_player) {
+void toRandom(map<int, string>& ToPlayer, map<string, bool>& IsPlayer, const int max_player) {
     //     vector<int> r = {0, 1, 2, 3};
     //     mt19937 gen(time(nullptr));
     //     shuffle(r.begin(), r.end(), gen);
@@ -118,8 +116,7 @@ void toRandom(map<int, string>& ToPlayer,
 bool isPlayer(const int i) { return IsPlayer[ToPlayer[i]]; }
 
 // 初始化手牌
-void startCard(vector<string>& warehouse,
-               vector<vector<string>>& playersHands) {
+void startCard(vector<string>& warehouse, vector<vector<string>>& playersHands) {
     const int startNum = 7;
     for (int i = 0; i < 4; i++) {
         playersHands[i].reserve(14);
@@ -131,9 +128,7 @@ void startCard(vector<string>& warehouse,
 }
 
 // 获得非功能牌的第一张牌
-void startGame(vector<string>& warehouse,
-               string& first,
-               vector<string>& usedCard) {
+void startGame(vector<string>& warehouse, string& first, vector<string>& usedCard) {
     while (first[1] != 'n') {
         usedCard.emplace_back(first);
         warehouse.pop_back();
@@ -158,8 +153,8 @@ void again(vector<string>& warehouse,
     for (int j = 0; j < 4; j++) {
         playersHands[j].clear();
     }
-    for (int j = 0; j < get_com_bool.size(); j++) {
-        get_com_bool[j] = false;
+    for (auto&& com_bool : get_com_bool) {
+        com_bool = false;
     }
     haveUpdate = false;
     Reverse = 1;
@@ -181,24 +176,18 @@ void again(vector<string>& warehouse,
     lastCard = first;
 
     if (max_player == 2) {
-        com_str += '\n' + p1_name + " is Player1.\n" + p2_name +
-                   " is Player2.\n" + "\nThe frist card is: \n    " +
-                   ToString[first[0]] + " " + ToString[first[1]] + " " +
-                   first[2] + "\n";
+        com_str += '\n' + p1_name + " is Player1.\n" + p2_name + " is Player2.\n" + "\nThe frist card is: \n    " +
+                   ToString[first[0]] + " " + ToString[first[1]] + " " + first[2] + "\n";
     } else if (max_player == 3) {
-        com_str += '\n' + p1_name + " is Player1.\n" + p2_name +
-                   " is Player2.\n" + p3_name + " is Player3.\n" +
-                   "\nThe frist card is: \n    " + ToString[first[0]] + " " +
-                   ToString[first[1]] + " " + first[2] + "\n";
+        com_str += '\n' + p1_name + " is Player1.\n" + p2_name + " is Player2.\n" + p3_name + " is Player3.\n" +
+                   "\nThe frist card is: \n    " + ToString[first[0]] + " " + ToString[first[1]] + " " + first[2] +
+                   "\n";
     } else if (max_player == 4) {
-        com_str += '\n' + p1_name + " is Player1.\n" + p2_name +
-                   " is Player2.\n" + p3_name + " is Player3.\n" + p4_name +
-                   " is Player4.\n" + "\nThe frist card is: \n    " +
-                   ToString[first[0]] + " " + ToString[first[1]] + " " +
-                   first[2] + "\n";
+        com_str += '\n' + p1_name + " is Player1.\n" + p2_name + " is Player2.\n" + p3_name + " is Player3.\n" +
+                   p4_name + " is Player4.\n" + "\nThe frist card is: \n    " + ToString[first[0]] + " " +
+                   ToString[first[1]] + " " + first[2] + "\n";
     } else {
-        com_str += '\n' + p1_name + " is Player1.\n" +
-                   "\nThe frist card is: \n    " + ToString[first[0]] + " " +
+        com_str += '\n' + p1_name + " is Player1.\n" + "\nThe frist card is: \n    " + ToString[first[0]] + " " +
                    ToString[first[1]] + " " + first[2] + "\n";
     }
 }
@@ -206,8 +195,8 @@ void again(vector<string>& warehouse,
 // 展示当前玩家i的手牌
 void getShow(string& ret, vector<vector<string>>& playersHands, const int i) {
     ret.clear();
-    for (int j = 0; j < playersHands[i].size(); j++) {
-        ret += playersHands[i][j];
+    for (const auto& card : playersHands[i]) {
+        ret += card;
     }
 }
 
@@ -234,19 +223,14 @@ int getNext(int i, const int Reverse) {
 }
 
 // 换色
-void changeColor(int playerColor,
-                 string& lastCard,
-                 vector<vector<string>>& playersHands,
-                 const int i,
-                 string& ret) {
+void changeColor(int playerColor, string& lastCard, vector<vector<string>>& playersHands, const int i, string& ret) {
     if (isPlayer(i)) {
         if (playerColor < 0 || playerColor > 3) {
             playerColor = 3;
         }
     } else {
         // 人机换色为手牌第一张的颜色
-        if (playersHands[i].begin() != playersHands[i].end() &&
-            playersHands[i][0][0] != '4') {
+        if (playersHands[i].begin() != playersHands[i].end() && playersHands[i][0][0] != '4') {
             playerColor = (int)playersHands[i][0][0] - '0';
         } else {
             playerColor = 3;
@@ -254,8 +238,7 @@ void changeColor(int playerColor,
     }
     // 换色
     lastCard[0] = '0' + playerColor;
-    ret +=
-        ToPlayer[i] + ":   change color into " + ToString[lastCard[0]] + '\n';
+    ret += ToPlayer[i] + ":   change color into " + ToString[lastCard[0]] + '\n';
 }
 
 // 人机被加
@@ -273,8 +256,7 @@ void computer_Add(const char T,
         if (card[1] == T) {
             have = true;
             lastCard = card;
-            ret += ToPlayer[i] + ":  play " + ToString[lastCard[0]] + " " +
-                   ToString[lastCard[1]] + "   剩余：" +
+            ret += ToPlayer[i] + ":  play " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + "   剩余：" +
                    to_string(playersHands[i].size()) + '\n';
             if (T == '6') {
                 addNum += 2;
@@ -282,8 +264,7 @@ void computer_Add(const char T,
                 addNum += 4;
                 changeColor(-1, lastCard, playersHands, i, ret);
             }
-            ret += ToPlayer[i] + ":  play Add!Now Add is " + to_string(addNum) +
-                   " !\n";
+            ret += ToPlayer[i] + ":  play Add!Now Add is " + to_string(addNum) + " !\n";
             // erase()
             auto it = playersHands[i].begin();
             it += t;
@@ -293,8 +274,7 @@ void computer_Add(const char T,
             }
             if (playersHands[i].empty()) {
                 win = i;
-                ret +=
-                    ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
+                ret += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
                 std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
@@ -312,17 +292,14 @@ void computer_Add(const char T,
             }
             playersHands[i].emplace_back(warehouse.back());
             warehouse.pop_back();
-            ret += ToPlayer[i] + ":  pick a card!     剩余：" +
-                   to_string(playersHands[i].size()) + "\n";
+            ret += ToPlayer[i] + ":  pick a card!     剩余：" + to_string(playersHands[i].size()) + "\n";
         }
         boolOfAdd = false;
     }
 }
 
 // 摸牌/罚牌/洛神（
-void getCard(vector<string>& warehouse,
-             vector<vector<string>>& playersHands,
-             const int i) {
+void getCard(vector<string>& warehouse, vector<vector<string>>& playersHands, const int i) {
     playersHands[i].emplace_back(warehouse.back());
     warehouse.pop_back();
 }
@@ -345,10 +322,8 @@ bool playCard(int& playerChoice,
     if (playerChoice < 0 || playerChoice > (int)'A') {
         playerChoice = 0;
     }
-    if ((playersHands[i][playerChoice][0] == lastCard[0] ||
-         playersHands[i][playerChoice][2] == lastCard[2] ||
-         playersHands[i][playerChoice][1] == '8' ||
-         playersHands[i][playerChoice][1] == '9')) {
+    if ((playersHands[i][playerChoice][0] == lastCard[0] || playersHands[i][playerChoice][2] == lastCard[2] ||
+         playersHands[i][playerChoice][1] == '8' || playersHands[i][playerChoice][1] == '9')) {
         if (playersHands[i][playerChoice][1] == '5') {
             isSkip = true;
         } else if (playersHands[i][playerChoice][1] == '6') {
@@ -396,18 +371,15 @@ void computerPlay(int playerChoice,
                   std::string& ret) {
     if (isSkip) {
         isSkip = false;
-        ret += ToPlayer[i] + ":  be Skipped!      剩余：" +
-               to_string(playersHands[i].size()) + '\n';
+        ret += ToPlayer[i] + ":  be Skipped!      剩余：" + to_string(playersHands[i].size()) + '\n';
         return;
     }
     if (isAddTwo) {
-        computer_Add(
-            '6', isAddTwo, lastCard, addNum, playersHands, warehouse, i, ret);
+        computer_Add('6', isAddTwo, lastCard, addNum, playersHands, warehouse, i, ret);
         return;
     }
     if (isAdd4) {
-        computer_Add(
-            '9', isAdd4, lastCard, addNum, playersHands, warehouse, i, ret);
+        computer_Add('9', isAdd4, lastCard, addNum, playersHands, warehouse, i, ret);
         return;
     }
     for (int k = 0; k < playersHands[i].size(); k++) {
@@ -425,12 +397,10 @@ void computerPlay(int playerChoice,
                      usedCard,
                      hadChanged)) {
             if (lastCard[2] <= '9' && lastCard[2] >= '0') {
-                ret += ToPlayer[i] + ":  play " + ToString[lastCard[0]] + " " +
-                       ToString[lastCard[1]] + " " + lastCard[2] + " 剩余：" +
-                       to_string(playersHands[i].size()) + '\n';
+                ret += ToPlayer[i] + ":  play " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + " " +
+                       lastCard[2] + " 剩余：" + to_string(playersHands[i].size()) + '\n';
             } else {
-                ret += ToPlayer[i] + ":  play " + ToString[lastCard[0]] + " " +
-                       ToString[lastCard[1]] + "   剩余：" +
+                ret += ToPlayer[i] + ":  play " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + "   剩余：" +
                        to_string(playersHands[i].size()) + '\n';
             }
             if (hadChanged) {
@@ -442,8 +412,7 @@ void computerPlay(int playerChoice,
             }
             if (playersHands[i].empty()) {
                 win = i;
-                ret +=
-                    ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
+                ret += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
                 std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
@@ -458,8 +427,7 @@ void computerPlay(int playerChoice,
                 ret += "Cards have been rebuilt!\n";
             }
             getCard(warehouse, playersHands, i);
-            ret += ToPlayer[i] + ":  pick a card!     剩余：" +
-                   to_string(playersHands[i].size()) + "\n";
+            ret += ToPlayer[i] + ":  pick a card!     剩余：" + to_string(playersHands[i].size()) + "\n";
             if (!mode) {
                 break;
             }
@@ -477,8 +445,7 @@ void on_hello(const httplib::Request& req, httplib::Response& res) {
 // 玩家登入服务端
 void on_login(const httplib::Request& req, httplib::Response& res) {
     std::lock_guard<std::mutex> lock(g_mutex);
-    if (!p1_name.empty() && !p2_name.empty() && !p3_name.empty() &&
-        !p4_name.empty()) {
+    if (!p1_name.empty() && !p2_name.empty() && !p3_name.empty() && !p4_name.empty()) {
         res.set_content("-1", "text/plain");
         return;
     }
@@ -488,40 +455,36 @@ void on_login(const httplib::Request& req, httplib::Response& res) {
             // for (int i = 0; p1_name.size(); i++) {
             //     p1_[i] = p1_name[i];
             // }
-            res.set_content("You are Player1 !\n欢迎 " + p1_name + " !",
-                            "text/plain");
+            res.set_content("You are Player1 !\n欢迎 " + p1_name + " !", "text/plain");
             std::cout << p1_name << " is login!\n";
             if (max_player < 2) {
-                isStart = 1;
+                isStart = true;
                 toRandom(ToPlayer, IsPlayer, max_player);
                 std::cout << "Everyone is ready!\n";
             }
         } else if (p2_name.empty()) {
             p2_name = req.get_header_value("Name");
-            res.set_content("You are Player2 !\n欢迎 " + p2_name + " !",
-                            "text/plain");
+            res.set_content("You are Player2 !\n欢迎 " + p2_name + " !", "text/plain");
             std::cout << p2_name << " is login!\n";
             if (max_player < 3) {
-                isStart = 1;
+                isStart = true;
                 toRandom(ToPlayer, IsPlayer, max_player);
                 std::cout << "Everyone is ready!\n";
             }
         } else if (p3_name.empty()) {
             p3_name = req.get_header_value("Name");
-            res.set_content("You are Player3 !\n欢迎 " + p3_name + " !",
-                            "text/plain");
+            res.set_content("You are Player3 !\n欢迎 " + p3_name + " !", "text/plain");
             std::cout << p3_name << " is login!\n";
             if (max_player < 4) {
-                isStart = 1;
+                isStart = true;
                 toRandom(ToPlayer, IsPlayer, max_player);
                 std::cout << "Everyone is ready!\n";
             }
         } else {
             p4_name = req.get_header_value("Name");
-            res.set_content("You are Player4 !\n欢迎 " + p4_name + " !",
-                            "text/plain");
+            res.set_content("You are Player4 !\n欢迎 " + p4_name + " !", "text/plain");
             std::cout << p4_name << " is login!\n";
-            isStart = 1;
+            isStart = true;
             toRandom(ToPlayer, IsPlayer, max_player);
             std::cout << "Everyone is ready!\n";
         }
@@ -538,27 +501,23 @@ void on_get_start(const httplib::Request& req, httplib::Response& res) {
 // 返回玩家信息
 void on_get_players(const httplib::Request& req, httplib::Response& res) {
     if (max_player == 2) {
-        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " +
-                            p2_name + "--win:" + to_string(countWin[1]) + " " +
-                            "Computer1--win:" + to_string(countWin[2]) + " " +
+        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " + p2_name +
+                            "--win:" + to_string(countWin[1]) + " " + "Computer1--win:" + to_string(countWin[2]) + " " +
                             "Computer2--win:" + to_string(countWin[3]),
                         "text/plain");
     } else if (max_player == 3) {
-        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " +
-                            p2_name + "--win:" + to_string(countWin[1]) + " " +
-                            p3_name + "--win:" + to_string(countWin[2]) + " " +
-                            "Computer1--win:" + to_string(countWin[3]),
+        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " + p2_name +
+                            "--win:" + to_string(countWin[1]) + " " + p3_name + "--win:" + to_string(countWin[2]) +
+                            " " + "Computer1--win:" + to_string(countWin[3]),
                         "text/plain");
     } else if (max_player == 4) {
-        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " +
-                            p2_name + "--win:" + to_string(countWin[1]) + " " +
-                            p3_name + "--win:" + to_string(countWin[2]) + " " +
-                            p4_name + "--win:" + to_string(countWin[3]),
+        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " + p2_name +
+                            "--win:" + to_string(countWin[1]) + " " + p3_name + "--win:" + to_string(countWin[2]) +
+                            " " + p4_name + "--win:" + to_string(countWin[3]),
                         "text/plain");
     } else {
-        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " +
-                            "Computer1--win:" + to_string(countWin[1]) + " " +
-                            "Computer2--win:" + to_string(countWin[2]) + " " +
+        res.set_content(p1_name + "--win:" + to_string(countWin[0]) + " " + "Computer1--win:" + to_string(countWin[1]) +
+                            " " + "Computer2--win:" + to_string(countWin[2]) + " " +
                             "Computer3--win:" + to_string(countWin[3]),
                         "text/plain");
     }
@@ -567,28 +526,22 @@ void on_get_players(const httplib::Request& req, httplib::Response& res) {
 // 获取第一张牌
 void on_get_first(const httplib::Request& req, httplib::Response& res) {
     if (max_player == 2) {
-        res.set_content('\n' + p1_name + " is Player1.\n" + p2_name +
-                            " is Player2.\n" + "\nThe frist card is: \n    " +
-                            ToString[first[0]] + " " + ToString[first[1]] +
-                            " " + first[2] + "\n",
+        res.set_content('\n' + p1_name + " is Player1.\n" + p2_name + " is Player2.\n" + "\nThe frist card is: \n    " +
+                            ToString[first[0]] + " " + ToString[first[1]] + " " + first[2] + "\n",
                         "text/plain");
     } else if (max_player == 3) {
-        res.set_content('\n' + p1_name + " is Player1.\n" + p2_name +
-                            " is Player2.\n" + p3_name + " is Player3.\n" +
-                            "\nThe frist card is: \n    " + ToString[first[0]] +
-                            " " + ToString[first[1]] + " " + first[2] + "\n",
+        res.set_content('\n' + p1_name + " is Player1.\n" + p2_name + " is Player2.\n" + p3_name + " is Player3.\n" +
+                            "\nThe frist card is: \n    " + ToString[first[0]] + " " + ToString[first[1]] + " " +
+                            first[2] + "\n",
                         "text/plain");
     } else if (max_player == 4) {
-        res.set_content('\n' + p1_name + " is Player1.\n" + p2_name +
-                            " is Player2.\n" + p3_name + " is Player3.\n" +
-                            p4_name + " is Player4.\n" +
-                            "\nThe frist card is: \n    " + ToString[first[0]] +
-                            " " + ToString[first[1]] + " " + first[2] + "\n",
+        res.set_content('\n' + p1_name + " is Player1.\n" + p2_name + " is Player2.\n" + p3_name + " is Player3.\n" +
+                            p4_name + " is Player4.\n" + "\nThe frist card is: \n    " + ToString[first[0]] + " " +
+                            ToString[first[1]] + " " + first[2] + "\n",
                         "text/plain");
     } else {
-        res.set_content('\n' + p1_name + " is Player1.\n" +
-                            "\nThe frist card is: \n    " + ToString[first[0]] +
-                            " " + ToString[first[1]] + " " + first[2] + "\n",
+        res.set_content('\n' + p1_name + " is Player1.\n" + "\nThe frist card is: \n    " + ToString[first[0]] + " " +
+                            ToString[first[1]] + " " + first[2] + "\n",
                         "text/plain");
     }
 }
@@ -648,8 +601,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
     if (req.get_header_value("Card").size() == 1) {
         idx = (int)req.get_header_value("Card")[0] - '1';
     } else {
-        idx = (int)req.get_header_value("Card")[1] - '1' +
-              10 * ((int)req.get_header_value("Card")[0] - '0');
+        idx = (int)req.get_header_value("Card")[1] - '1' + 10 * ((int)req.get_header_value("Card")[0] - '0');
     }
     if (idx < 0 || idx > playersHands[i].size() - 1) {
         idx = 0;
@@ -657,8 +609,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
     // 检查是否被禁
     if (isSkip) {
         isSkip = false;
-        com_str += ToPlayer[i] + ":  is Skipped!      剩余：" +
-                   std::to_string(playersHands[i].size()) + "\n";
+        com_str += ToPlayer[i] + ":  is Skipped!      剩余：" + std::to_string(playersHands[i].size()) + "\n";
         return;
     }
     // 检查是否加2
@@ -679,8 +630,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             if (playersHands[i].empty()) {
                 win = i;
                 std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
-                com_str +=
-                    ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
+                com_str += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
         }
@@ -695,8 +645,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             }
             playersHands[i].emplace_back(warehouse.back());
             warehouse.pop_back();
-            com_str += ToPlayer[i] + ":  pick a card!     剩余：" +
-                       std::to_string(playersHands[i].size()) + "\n";
+            com_str += ToPlayer[i] + ":  pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
         }
         isAddTwo = false;
     }
@@ -720,8 +669,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             if (playersHands[i].empty()) {
                 win = i;
                 std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
-                com_str +=
-                    ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
+                com_str += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
         }
@@ -736,8 +684,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             }
             playersHands[i].emplace_back(warehouse.back());
             warehouse.pop_back();
-            com_str += ToPlayer[i] + ":  pick a card!     剩余：" +
-                       std::to_string(playersHands[i].size()) + "\n";
+            com_str += ToPlayer[i] + ":  pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
         }
         isAdd4 = false;
     }
@@ -790,8 +737,7 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
     if (req.get_header_value("Card").size() == 1) {
         idx = (int)req.get_header_value("Card")[0] - '1';
     } else {
-        idx = (int)req.get_header_value("Card")[1] - '1' +
-              10 * ((int)req.get_header_value("Card")[0] - '0');
+        idx = (int)req.get_header_value("Card")[1] - '1' + 10 * ((int)req.get_header_value("Card")[0] - '0');
     }
     if (idx < 0 || idx > playersHands[i].size() - 1) {
         idx = 0;
@@ -810,14 +756,11 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
                           usedCard,
                           hadChanged)) {
         if (lastCard[2] <= '9' && lastCard[2] >= '0') {
-            tmp += "You play :       " + ToString[lastCard[0]] + " " +
-                   ToString[lastCard[1]] + " " + lastCard[2] + '\n';
+            tmp += "You play :       " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + " " + lastCard[2] + '\n';
         } else {
-            tmp += "You play :       " + ToString[lastCard[0]] + " " +
-                   ToString[lastCard[1]] + '\n';
+            tmp += "You play :       " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + '\n';
         }
-        for (int tmp_i = getNext(i, Reverse); 1;
-             tmp_i = getNext(tmp_i, Reverse)) {
+        for (int tmp_i = getNext(i, Reverse); 1; tmp_i = getNext(tmp_i, Reverse)) {
             if (isPlayer(tmp_i)) {
                 tmp += ToPlayer[tmp_i] + ":  is thinking...\n";
                 break;
@@ -825,13 +768,10 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
         }
         // 记录 player_str
         if (lastCard[2] <= '9' && lastCard[2] >= '0') {
-            com_str += ToPlayer[i] + ":    play " + ToString[lastCard[0]] +
-                       " " + ToString[lastCard[1]] + " " + lastCard[2] +
-                       " 剩余：" + std::to_string(playersHands[i].size()) +
-                       '\n';
+            com_str += ToPlayer[i] + ":    play " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + " " +
+                       lastCard[2] + " 剩余：" + std::to_string(playersHands[i].size()) + '\n';
         } else {
-            com_str += ToPlayer[i] + ":    play " + ToString[lastCard[0]] +
-                       " " + ToString[lastCard[1]] + "   剩余：" +
+            com_str += ToPlayer[i] + ":    play " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + "   剩余：" +
                        std::to_string(playersHands[i].size()) + '\n';
         }
         if (playersHands[i].size() == 1) {
@@ -840,8 +780,7 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
         if (playersHands[i].empty()) {
             win = i;
             std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
-            com_str +=
-                ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
+            com_str += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
             again(warehouse, usedCard, playersHands, first, lastCard);
         }
     } else {
@@ -852,10 +791,8 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
             com_str += "Cards have been rebuilt!\n";
         }
         getCard(warehouse, playersHands, i);
-        tmp += ToPlayer[i] + ":    pick a card!     剩余：" +
-               std::to_string(playersHands[i].size()) + "\n";
-        com_str += ToPlayer[i] + ":    pick a card!     剩余：" +
-                   std::to_string(playersHands[i].size()) + "\n";
+        tmp += ToPlayer[i] + ":    pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
+        com_str += ToPlayer[i] + ":    pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
         if (!mode) {
             //    return PlayerPlay();
         }
@@ -874,9 +811,7 @@ void on_computer_update(const httplib::Request& req, httplib::Response& res) {
     std::lock_guard<std::mutex> lock(g_mutex);
     if (win != -1) {
         com_str.clear();
-        res.set_content(ToPlayer[win] +
-                            " is the WINNER!!!\n\n\nGame restart!\n",
-                        "text/plain");
+        res.set_content(ToPlayer[win] + " is the WINNER!!!\n\n\nGame restart!\n", "text/plain");
         countWin[win]++;
         win = -1;
         return;
@@ -916,8 +851,8 @@ void on_computer_update(const httplib::Request& req, httplib::Response& res) {
         res.set_content(com_str, "text/plain");
 
         if (cnt_com < 1) {
-            for (int j = 0; j < get_com_bool.size(); j++) {
-                get_com_bool[j] = false;
+            for (auto&& com_bool : get_com_bool) {
+                com_bool = false;
             }
             haveUpdate = false;
             cnt_com = max_player;
@@ -929,8 +864,7 @@ void on_computer_update(const httplib::Request& req, httplib::Response& res) {
 // 玩家聊天
 void on_call(const httplib::Request& req, httplib::Response& res) {
     std::lock_guard<std::mutex> lock(g_mutex);
-    com_str += req.get_header_value("Name") + " 全图呼叫：" +
-               req.get_header_value("Message") + '\n';
+    com_str += req.get_header_value("Name") + " 全图呼叫：" + req.get_header_value("Message") + '\n';
 }
 
 int main(int argc, char** argv) {
@@ -950,8 +884,8 @@ int main(int argc, char** argv) {
     max_rob = 4 - max_player;
     cnt_com = max_player;
     get_com_bool.resize(max_player);
-    for (int i = 0; i < get_com_bool.size(); i++) {
-        get_com_bool[i] = false;
+    for (auto&& com_bool : get_com_bool) {
+        com_bool = false;
     }
 
     // 生成牌堆
