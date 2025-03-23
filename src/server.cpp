@@ -4,31 +4,36 @@
 #include <fstream>
 #include <iostream>
 #include <mutex>
-#include <sstream>
 #include <string>
 #include <vector>
 
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+
+using namespace std;
+
 bool mode = false; // 膀胱模式 :)
 
-std::mutex g_mutex;
+mutex g_mutex;
 
+int port;            // 服务端口号
 int max_player;      // 玩家总数（动态设置不用const）
 int max_rob;         // 人机总数
 int cnt_com;         // 读取com_str时的计数上限为玩家总数
-std::string p1_name; // 玩家昵称
-std::string p2_name; //
-std::string p3_name; //
-std::string p4_name; //
-std::string p1;      // 返回玩家的字符串
-std::string p2;      //
-std::string p3;      //
-std::string p4;      //
+string p1_name;      // 玩家昵称
+string p2_name;      //
+string p3_name;      //
+string p4_name;      //
+string p1;           // 返回玩家的字符串
+string p2;           //
+string p3;           //
+string p4;           //
 bool isStart = 0;    // 记录游戏是否开始
 
-std::vector<std::string> warehouse;                    // 牌堆
-std::vector<std::string> usedCard;                     // 弃牌堆
-std::vector<std::vector<std::string>> playersHands(4); // 手牌
-std::string lastCard;
+vector<string> warehouse;                      // 牌堆
+vector<string> usedCard;                       // 弃牌堆
+vector<vector<string>> playersHands(4); // 手牌
+string lastCard;
 int i = 0;     // 当前玩家i，0<=i<=3
 int idx = 0;   // 卡牌下标
 int color = 0; // 颜色
@@ -40,15 +45,15 @@ bool isAdd4 = false;
 int addNum = 0;
 bool hadChanged = false;
 int playerColor = -1;
-std::string first;
-std::string tmp = "";           // 寄存器
-std::string com_str = "";       //
-std::string turn_str = "";      //
-std::vector<bool> get_com_bool; // 记录玩家是否获取人机出牌信息
-std::vector<int> countWin = {0, 0, 0, 0};
+string first;
+string tmp = "";           // 寄存器
+string com_str = "";       //
+string turn_str = "";      //
+vector<bool> get_com_bool; // 记录玩家是否获取人机出牌信息
+vector<int> countWin = {0, 0, 0, 0};
 bool haveUpdate = false;
 // 一些映射表
-std::unordered_map<char, std::string> ToString = {
+unordered_map<char, string> ToString = {
     {'0', "红"},
     {'1', "绿"},
     {'2', "蓝"},
@@ -61,10 +66,9 @@ std::unordered_map<char, std::string> ToString = {
     {'9', "Black4"},
     {'n', "Number"},
 };
-std::map<int, std::string> ToPlayer = {};
-std::map<std::string, bool> IsPlayer = {};
+map<int, string> ToPlayer = {};
+map<string, bool> IsPlayer = {};
 
-using namespace std;
 // 生成牌堆
 void generateCard(vector<string>& warehouse) {
     // 标准UNO 108张
@@ -140,6 +144,14 @@ void startGame(vector<string>& warehouse, string& first, vector<string>& usedCar
 void washedCard(vector<string>& usedCard) {
     mt19937 gen(time(nullptr));
     shuffle(usedCard.begin(), usedCard.end(), gen);
+}
+
+void newServer() {
+    thread commandThread([]() {
+        cout << "\nP.S. 已创建新服务供玩家使用\n";
+        system("server.exe");
+    });
+    commandThread.detach();
 }
 
 void again(vector<string>& warehouse,
@@ -275,7 +287,7 @@ void computer_Add(const char T,
             if (playersHands[i].empty()) {
                 win = i;
                 ret += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
-                std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
+                cout << ToPlayer[win] + " is the WINNER!!!\n\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
             break;
@@ -368,7 +380,7 @@ void computerPlay(int playerChoice,
                   bool& hadChanged,
                   const bool mode,
                   int& win,
-                  std::string& ret) {
+                  string& ret) {
     if (isSkip) {
         isSkip = false;
         ret += ToPlayer[i] + ":  be Skipped!      剩余：" + to_string(playersHands[i].size()) + '\n';
@@ -413,7 +425,7 @@ void computerPlay(int playerChoice,
             if (playersHands[i].empty()) {
                 win = i;
                 ret += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
-                std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
+                cout << ToPlayer[win] + " is the WINNER!!!\n\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
             break;
@@ -437,14 +449,14 @@ void computerPlay(int playerChoice,
 
 // 第一次握手
 void on_hello(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
-    std::cout << "Hello From Client!\n";
+    lock_guard<mutex> lock(g_mutex);
+    cout << "Hello From Client!\n";
     res.set_content("Hello From Server!", "text/plain");
 }
 
 // 玩家登入服务端
 void on_login(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     if (!p1_name.empty() && !p2_name.empty() && !p3_name.empty() && !p4_name.empty()) {
         res.set_content("-1", "text/plain");
         return;
@@ -456,37 +468,41 @@ void on_login(const httplib::Request& req, httplib::Response& res) {
             //     p1_[i] = p1_name[i];
             // }
             res.set_content("You are Player1 !\n欢迎 " + p1_name + " !", "text/plain");
-            std::cout << p1_name << " is login!\n";
+            cout << p1_name << " is login!\n";
             if (max_player < 2) {
                 isStart = true;
                 toRandom(ToPlayer, IsPlayer, max_player);
-                std::cout << "Everyone is ready!\n";
+                cout << "Everyone is ready!\n";
+                newServer();
             }
         } else if (p2_name.empty()) {
             p2_name = req.get_header_value("Name");
             res.set_content("You are Player2 !\n欢迎 " + p2_name + " !", "text/plain");
-            std::cout << p2_name << " is login!\n";
+            cout << p2_name << " is login!\n";
             if (max_player < 3) {
                 isStart = true;
                 toRandom(ToPlayer, IsPlayer, max_player);
-                std::cout << "Everyone is ready!\n";
+                cout << "Everyone is ready!\n";
+                newServer();
             }
         } else if (p3_name.empty()) {
             p3_name = req.get_header_value("Name");
             res.set_content("You are Player3 !\n欢迎 " + p3_name + " !", "text/plain");
-            std::cout << p3_name << " is login!\n";
+            cout << p3_name << " is login!\n";
             if (max_player < 4) {
                 isStart = true;
                 toRandom(ToPlayer, IsPlayer, max_player);
-                std::cout << "Everyone is ready!\n";
+                cout << "Everyone is ready!\n";
+                newServer();
             }
         } else {
             p4_name = req.get_header_value("Name");
             res.set_content("You are Player4 !\n欢迎 " + p4_name + " !", "text/plain");
-            std::cout << p4_name << " is login!\n";
+            cout << p4_name << " is login!\n";
             isStart = true;
             toRandom(ToPlayer, IsPlayer, max_player);
-            std::cout << "Everyone is ready!\n";
+            cout << "Everyone is ready!\n";
+            newServer();
         }
     }
 }
@@ -548,14 +564,14 @@ void on_get_first(const httplib::Request& req, httplib::Response& res) {
 
 // 显示当前玩家的手牌
 void on_show_card(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     getShow(tmp, playersHands, i);
     res.set_content(tmp, "text/plain");
 }
 
 // 更新回合
 void on_query_turn(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     turn_str = req.get_header_value("Player");
     if (turn_str == ToPlayer[i]) {
         res.set_content("\1", "text/plain");
@@ -566,7 +582,7 @@ void on_query_turn(const httplib::Request& req, httplib::Response& res) {
 
 // 返回被加的状况
 void on_query_add(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     tmp.clear();
     // 跳过
     if (isSkip) {
@@ -575,7 +591,7 @@ void on_query_add(const httplib::Request& req, httplib::Response& res) {
     // 检查是否加2
     if (isAddTwo) {
         tmp = "a";
-        for (std::string card : playersHands[i]) {
+        for (string card : playersHands[i]) {
             if (card[1] == '6') {
                 tmp = "t";
                 break;
@@ -585,7 +601,7 @@ void on_query_add(const httplib::Request& req, httplib::Response& res) {
     // 检查是否加2
     if (isAdd4) {
         tmp = "a";
-        for (std::string card : playersHands[i]) {
+        for (string card : playersHands[i]) {
             if (card[1] == '9') {
                 tmp = "f";
             }
@@ -596,7 +612,7 @@ void on_query_add(const httplib::Request& req, httplib::Response& res) {
 
 // 加牌
 void on_add(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     tmp.clear();
     if (req.get_header_value("Card").size() == 1) {
         idx = (int)req.get_header_value("Card")[0] - '1';
@@ -609,7 +625,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
     // 检查是否被禁
     if (isSkip) {
         isSkip = false;
-        com_str += ToPlayer[i] + ":  is Skipped!      剩余：" + std::to_string(playersHands[i].size()) + "\n";
+        com_str += ToPlayer[i] + ":  is Skipped!      剩余：" + to_string(playersHands[i].size()) + "\n";
         return;
     }
     // 检查是否加2
@@ -629,7 +645,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             }
             if (playersHands[i].empty()) {
                 win = i;
-                std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
+                cout << ToPlayer[win] + " is the WINNER!!!\n\n";
                 com_str += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
@@ -645,7 +661,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             }
             playersHands[i].emplace_back(warehouse.back());
             warehouse.pop_back();
-            com_str += ToPlayer[i] + ":  pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
+            com_str += ToPlayer[i] + ":  pick a card!     剩余：" + to_string(playersHands[i].size()) + "\n";
         }
         isAddTwo = false;
     }
@@ -668,7 +684,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             }
             if (playersHands[i].empty()) {
                 win = i;
-                std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
+                cout << ToPlayer[win] + " is the WINNER!!!\n\n";
                 com_str += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
                 again(warehouse, usedCard, playersHands, first, lastCard);
             }
@@ -684,7 +700,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
             }
             playersHands[i].emplace_back(warehouse.back());
             warehouse.pop_back();
-            com_str += ToPlayer[i] + ":  pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
+            com_str += ToPlayer[i] + ":  pick a card!     剩余：" + to_string(playersHands[i].size()) + "\n";
         }
         isAdd4 = false;
     }
@@ -692,7 +708,7 @@ void on_add(const httplib::Request& req, httplib::Response& res) {
 
 // 返回转色
 void on_query_change(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     if (hadChanged) {
         res.set_content("w", "text/plain");
     } else {
@@ -709,7 +725,7 @@ void on_query_change(const httplib::Request& req, httplib::Response& res) {
 
 // 更新转色
 void on_change_color(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     if (req.get_header_value("Color").size() == 1) {
         color = (int)req.get_header_value("Color")[0] - '1';
     }
@@ -728,7 +744,7 @@ void on_change_color(const httplib::Request& req, httplib::Response& res) {
 
 // 玩家出牌
 void on_updata(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     tmp.clear();
     bool pick = false;
     if ((int)req.get_header_value("Card")[0] == '0') {
@@ -769,17 +785,17 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
         // 记录 player_str
         if (lastCard[2] <= '9' && lastCard[2] >= '0') {
             com_str += ToPlayer[i] + ":    play " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + " " +
-                       lastCard[2] + " 剩余：" + std::to_string(playersHands[i].size()) + '\n';
+                       lastCard[2] + " 剩余：" + to_string(playersHands[i].size()) + '\n';
         } else {
             com_str += ToPlayer[i] + ":    play " + ToString[lastCard[0]] + " " + ToString[lastCard[1]] + "   剩余：" +
-                       std::to_string(playersHands[i].size()) + '\n';
+                       to_string(playersHands[i].size()) + '\n';
         }
         if (playersHands[i].size() == 1) {
             com_str += ToPlayer[i] + ":  ------UNO------!!!\n";
         }
         if (playersHands[i].empty()) {
             win = i;
-            std::cout << ToPlayer[win] + " is the WINNER!!!\n\n";
+            cout << ToPlayer[win] + " is the WINNER!!!\n\n";
             com_str += ToPlayer[win] + ":  is the WINNER!!!\n\n\nGame restart!\n";
             again(warehouse, usedCard, playersHands, first, lastCard);
         }
@@ -791,8 +807,8 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
             com_str += "Cards have been rebuilt!\n";
         }
         getCard(warehouse, playersHands, i);
-        tmp += ToPlayer[i] + ":    pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
-        com_str += ToPlayer[i] + ":    pick a card!     剩余：" + std::to_string(playersHands[i].size()) + "\n";
+        tmp += ToPlayer[i] + ":    pick a card!     剩余：" + to_string(playersHands[i].size()) + "\n";
+        com_str += ToPlayer[i] + ":    pick a card!     剩余：" + to_string(playersHands[i].size()) + "\n";
         if (!mode) {
             //    return PlayerPlay();
         }
@@ -808,7 +824,7 @@ void on_updata(const httplib::Request& req, httplib::Response& res) {
 
 // 人机出牌
 void on_computer_update(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     if (win != -1) {
         com_str.clear();
         res.set_content(ToPlayer[win] + " is the WINNER!!!\n\n\nGame restart!\n", "text/plain");
@@ -845,7 +861,7 @@ void on_computer_update(const httplib::Request& req, httplib::Response& res) {
     if (!get_com_bool[reqIdx] && haveUpdate) {
         get_com_bool[reqIdx] = true;
         cnt_com--;
-        std::string s = req.get_header_value("Bool");
+        string s = req.get_header_value("Bool");
         // i:{i}, {s}, {cnt_com}, see {get_com_bool[0]},{get_com_bool[1]},
         // update {haveUpdate}
         res.set_content(com_str, "text/plain");
@@ -863,24 +879,77 @@ void on_computer_update(const httplib::Request& req, httplib::Response& res) {
 
 // 玩家聊天
 void on_call(const httplib::Request& req, httplib::Response& res) {
-    std::lock_guard<std::mutex> lock(g_mutex);
+    lock_guard<mutex> lock(g_mutex);
     com_str += req.get_header_value("Name") + " 全图呼叫：" + req.get_header_value("Message") + '\n';
+}
+
+unordered_map<string, string> readConfigFile(const string& filename) {
+    unordered_map<string, string> config;
+    ifstream file(filename);
+
+    if (!file.good()) {
+        cout << "读取失败！\n";
+        exit(-1);
+    }
+
+    string line;
+    while (getline(file, line)) {
+        // 跳过空行和注释行（以#开头）
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        size_t equalPos = line.find('=');
+        if (equalPos != string::npos) {
+            string key = line.substr(0, equalPos);
+            string value = line.substr(equalPos + 1);
+            config[key] = value;
+        }
+    }
+
+    file.close();
+    return config;
+}
+
+int findAvailablePort(int start_port) {
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        cerr << "WSAStartup failed\n";
+        return 0;
+    }
+
+    for (int port = start_port; port < 30000; ++port) {
+        SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock == INVALID_SOCKET) {
+            continue;
+        }
+
+        sockaddr_in addr;
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = INADDR_ANY;
+        addr.sin_port = htons(port);
+        if (::bind(sock, (sockaddr*)&addr, sizeof(addr)) == 0) {
+            closesocket(sock);
+            WSACleanup();
+            return port;
+        }
+
+        closesocket(sock);
+    }
+
+    WSACleanup();
+    cerr << "No available port found between " << start_port << " and 30000\nReturning default port 25565\n";
+    return 25565;
 }
 
 int main(int argc, char** argv) {
     system("chcp 65001");
-    // 读取最大玩家数
-    {
-        std::ifstream file("max_player.cfg");
-        if (!file.good()) {
-            std::cout << "读取失败！\n";
-            exit(-1);
-        }
-        std::stringstream str_string;
-        str_string << file.rdbuf();
-        max_player = str_string.str()[0] - '0';
-        file.close();
-    }
+    // 读取参数
+    unordered_map<string, string> config = readConfigFile("config.cfg");
+    max_player = stoi(config["max_player"]);
+    port = findAvailablePort(stoi(config["port"]));
+    cout << "新服务端口号为 " << port << '\n';
+
     max_rob = 4 - max_player;
     cnt_com = max_player;
     get_com_bool.resize(max_player);
@@ -894,7 +963,7 @@ int main(int argc, char** argv) {
     usedCard.reserve(108);
     // 发牌
     startCard(warehouse, playersHands);
-    std::cout << "Game Start!\n\n";
+    cout << "Game Start!\n\n";
     // 获取第一张非功能牌
     first = warehouse.back();
     startGame(warehouse, first, usedCard);
@@ -916,8 +985,7 @@ int main(int argc, char** argv) {
     server.Post("/query_change", on_query_change);
     server.Post("/change_color", on_change_color);
     server.Post("/call", on_call);
-    server.listen("0.0.0.0", 25565);
-    // server.listen("172.16.2.173", 25565);
+    server.listen("0.0.0.0", port);
 }
 /*
 x86_64-w64-mingw32-g++ -static-libgcc -static-libstdc++ server.cpp -o uno.exe -lws2_32
